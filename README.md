@@ -29,3 +29,14 @@ Additional available settings:
 - `DB_STATEMENT_TIMEOUT_MS`, `DB_QUERY_TIMEOUT_MS`
 - `DB_SLOW_QUERY_THRESHOLD_MS`
 - `DB_SSL`, `DB_SSL_REJECT_UNAUTHORIZED`
+
+## Default admin seed
+
+On startup, the app can seed a default admin user.
+
+Required environment variables:
+- `ADMIN_EMAIL`
+- `ADMIN_PASSWORD`
+
+Optional:
+- `SEED_ADMIN_ON_STARTUP` (`true` by default, set `false` to disable)
