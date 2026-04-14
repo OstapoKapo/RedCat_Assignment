@@ -93,7 +93,7 @@ export class AuthController {
   @ApiOkResponse({ type: MeResponseDto })
   @ApiUnauthorizedResponse({ description: 'Missing or invalid access token' })
   me(@Req() request: Request): MeResponseDto {
-    const accessToken = this.getCookieValue(request, 'accessToken');
+    const accessToken = request.cookies?.accessToken as string | undefined;
     if (!accessToken) {
       throw new UnauthorizedException('Access token is missing');
     }
@@ -150,23 +150,5 @@ export class AuthController {
     }
 
     return token.slice(prefix.length) || null;
-  }
-
-  private getCookieValue(request: Request, name: string): string | undefined {
-    const rawCookieHeader = request.headers.cookie;
-    if (!rawCookieHeader) {
-      return undefined;
-    }
-
-    const cookiePart = rawCookieHeader
-      .split(';')
-      .map((item) => item.trim())
-      .find((item) => item.startsWith(`${name}=`));
-
-    if (!cookiePart) {
-      return undefined;
-    }
-
-    return decodeURIComponent(cookiePart.slice(name.length + 1));
   }
 }
