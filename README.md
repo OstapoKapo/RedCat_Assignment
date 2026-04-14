@@ -2,13 +2,13 @@
 
 ## Docker Compose
 
-Запуск усіх сервісів (server + PostgreSQL + Redis):
+Run all services (server + PostgreSQL + Redis):
 
 ```bash
 docker compose up --build
 ```
 
-Зупинити та прибрати контейнери:
+Stop and remove containers:
 
 ```bash
 docker compose down
@@ -16,14 +16,14 @@ docker compose down
 
 ## Database (TypeORM)
 
-Сервер підключає PostgreSQL через TypeORM.
-Основний спосіб — `DATABASE_URL`, приклад:
+The server connects to PostgreSQL via TypeORM.
+Primary option is `DATABASE_URL`, example:
 
 ```bash
 DATABASE_URL=postgresql://postgres:postgres@localhost:5432/redcat
 ```
 
-Додатково доступні налаштування:
+Additional available settings:
 - `DB_POOL_MIN`, `DB_POOL_MAX`
 - `DB_CONNECTION_TIMEOUT_MS`, `DB_IDLE_TIMEOUT_MS`
 - `DB_STATEMENT_TIMEOUT_MS`, `DB_QUERY_TIMEOUT_MS`
