@@ -125,30 +125,52 @@ export class UsersService {
   }
 
   async updateUserRole(id: string, input: UpdateUserRoleDto): Promise<void> {
-    await this.getUserById(id);
-    await this.usersRepository.update({ id }, { role: input.role });
+    const result = await this.usersRepository.update(
+      { id },
+      { role: input.role },
+    );
+    if (!result.affected) {
+      throw new NotFoundException('User not found');
+    }
   }
 
   async updatePassword(
     id: string,
     input: UpdateUserPasswordDto,
   ): Promise<void> {
-    await this.getUserById(id);
-    await this.usersRepository.update({ id }, { password: input.password });
+    const result = await this.usersRepository.update(
+      { id },
+      { password: input.password },
+    );
+    if (!result.affected) {
+      throw new NotFoundException('User not found');
+    }
   }
 
   async activateUser(id: string): Promise<void> {
-    await this.getUserById(id);
-    await this.usersRepository.update({ id }, { isActive: true });
+    const result = await this.usersRepository.update(
+      { id },
+      { isActive: true },
+    );
+    if (!result.affected) {
+      throw new NotFoundException('User not found');
+    }
   }
 
   async deactivateUser(id: string): Promise<void> {
-    await this.getUserById(id);
-    await this.usersRepository.update({ id }, { isActive: false });
+    const result = await this.usersRepository.update(
+      { id },
+      { isActive: false },
+    );
+    if (!result.affected) {
+      throw new NotFoundException('User not found');
+    }
   }
 
   async deleteUser(id: string): Promise<void> {
-    await this.getUserById(id);
-    await this.usersRepository.delete({ id });
+    const result = await this.usersRepository.delete({ id });
+    if (!result.affected) {
+      throw new NotFoundException('User not found');
+    }
   }
 }
