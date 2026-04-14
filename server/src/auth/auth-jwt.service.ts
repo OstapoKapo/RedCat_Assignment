@@ -19,10 +19,7 @@ export class AuthJwtService {
     };
 
     return this.jwtService.signAsync(payload, {
-      secret: this.configService.get<string>(
-        'JWT_ACCESS_SECRET',
-        'dev-access-secret',
-      ),
+      secret: this.configService.getOrThrow<string>('JWT_ACCESS_SECRET'),
       expiresIn: Number(
         this.configService.get<string>('JWT_ACCESS_EXPIRES_IN_SECONDS', '900'),
       ),
@@ -37,10 +34,7 @@ export class AuthJwtService {
     };
 
     return this.jwtService.signAsync(payload, {
-      secret: this.configService.get<string>(
-        'JWT_REFRESH_SECRET',
-        'dev-refresh-secret',
-      ),
+      secret: this.configService.getOrThrow<string>('JWT_REFRESH_SECRET'),
       expiresIn: Number(
         this.configService.get<string>(
           'JWT_REFRESH_EXPIRES_IN_SECONDS',
@@ -52,19 +46,13 @@ export class AuthJwtService {
 
   async verifyAccessToken(token: string): Promise<JwtPayload> {
     return this.jwtService.verifyAsync<JwtPayload>(token, {
-      secret: this.configService.get<string>(
-        'JWT_ACCESS_SECRET',
-        'dev-access-secret',
-      ),
+      secret: this.configService.getOrThrow<string>('JWT_ACCESS_SECRET'),
     });
   }
 
   async verifyRefreshToken(token: string): Promise<JwtPayload> {
     return this.jwtService.verifyAsync<JwtPayload>(token, {
-      secret: this.configService.get<string>(
-        'JWT_REFRESH_SECRET',
-        'dev-refresh-secret',
-      ),
+      secret: this.configService.getOrThrow<string>('JWT_REFRESH_SECRET'),
     });
   }
 }
