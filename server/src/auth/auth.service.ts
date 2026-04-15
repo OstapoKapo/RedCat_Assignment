@@ -87,10 +87,6 @@ export class AuthService {
       throw error;
     }
 
-    if (!user.isActive) {
-      throw new UnauthorizedException('User account is deactivated');
-    }
-
     return user;
   }
 
@@ -149,10 +145,6 @@ export class AuthService {
         throw new UnauthorizedException('Invalid token subject');
       }
       throw error;
-    }
-
-    if (!user.isActive) {
-      throw new UnauthorizedException('User account is deactivated');
     }
 
     return user;
