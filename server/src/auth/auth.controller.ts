@@ -24,18 +24,18 @@ import {
   ACCESS_TOKEN_COOKIE_NAME,
   REFRESH_TOKEN_COOKIE_NAME,
 } from './constants/auth.constants';
+import { AUTH_RESPONSE_MESSAGE } from './constants/auth-response.constants';
 import { CurrentUser } from './decorators/current-user.decorator';
 import { JwtAccessAuthGuard } from './guards/jwt-access-auth.guard';
 import { JwtRefreshAuthGuard } from './guards/jwt-refresh-auth.guard';
 import { AuthService } from './auth.service';
-import { AuthTokensResponseDto } from './dto/auth-tokens-response.dto';
 import { AuthUserResponseDto } from './dto/auth-user-response.dto';
+import { AuthMessageResponseDto } from './dto/auth-message-response.dto';
 import { LoginDto } from './dto/login.dto';
-import { LoginResponseDto } from './dto/login-response.dto';
 import { MeResponseDto } from './dto/me-response.dto';
 import { RegisterDto } from './dto/register.dto';
-import { RegisterResponseDto } from './dto/register-response.dto';
 import { JwtPayload } from './types/jwt-payload.type';
+import { AuthTokensResponseDto } from './dto/auth-tokens-response.dto';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -48,41 +48,41 @@ export class AuthController {
   @Post('register')
   @ApiOperation({
     summary: 'Register',
-    description: 'Registers user and returns access/refresh tokens.',
+    description:
+      'Registers user, sets access/refresh tokens in HttpOnly cookies, and returns a success message.',
   })
   @ApiBody({ type: RegisterDto })
-  @ApiOkResponse({ type: RegisterResponseDto })
+  @ApiOkResponse({ type: AuthMessageResponseDto })
   async register(
     @Body() dto: RegisterDto,
     @Res({ passthrough: true }) response: Response,
-  ): Promise<RegisterResponseDto> {
+  ): Promise<AuthMessageResponseDto> {
     const result = await this.authService.register(dto);
     this.setAuthCookies(response, result.tokens);
 
     return {
-      user: AuthUserResponseDto.fromEntity(result.user),
-      tokens: result.tokens,
+      message: AUTH_RESPONSE_MESSAGE.REGISTER_SUCCESS,
     };
   }
 
   @Post('login')
   @ApiOperation({
     summary: 'Login',
-    description: 'Logs user in and returns access/refresh tokens.',
+    description:
+      'Logs user in, sets access/refresh tokens in HttpOnly cookies, and returns a success message.',
   })
   @ApiBody({ type: LoginDto })
-  @ApiOkResponse({ type: LoginResponseDto })
+  @ApiOkResponse({ type: AuthMessageResponseDto })
   @ApiUnauthorizedResponse({ description: 'Invalid credentials' })
   async login(
     @Body() dto: LoginDto,
     @Res({ passthrough: true }) response: Response,
-  ): Promise<LoginResponseDto> {
+  ): Promise<AuthMessageResponseDto> {
     const result = await this.authService.login(dto);
     this.setAuthCookies(response, result.tokens);
 
     return {
-      user: AuthUserResponseDto.fromEntity(result.user),
-      tokens: result.tokens,
+      message: AUTH_RESPONSE_MESSAGE.LOGIN_SUCCESS,
     };
   }
 
@@ -112,13 +112,13 @@ export class AuthController {
     description:
       'Issues new access/refresh tokens by valid refresh token from HttpOnly cookie.',
   })
-  @ApiOkResponse({ type: LoginResponseDto })
+  @ApiOkResponse({ type: AuthMessageResponseDto })
   @ApiUnauthorizedResponse({ description: 'Missing or invalid refresh token' })
   async refresh(
     @CurrentUser() currentUser: JwtPayload,
     @Req() request: Request,
     @Res({ passthrough: true }) response: Response,
-  ): Promise<LoginResponseDto> {
+  ): Promise<AuthMessageResponseDto> {
     const refreshToken = request.cookies?.[REFRESH_TOKEN_COOKIE_NAME] as
       | string
       | undefined;
@@ -126,8 +126,7 @@ export class AuthController {
     this.setAuthCookies(response, result.tokens);
 
     return {
-      user: AuthUserResponseDto.fromEntity(result.user),
-      tokens: result.tokens,
+      message: AUTH_RESPONSE_MESSAGE.REFRESH_SUCCESS,
     };
   }
 

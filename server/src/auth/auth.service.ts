@@ -1,6 +1,6 @@
 import {
   Injectable,
-  InternalServerErrorException,
+  Logger,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -10,6 +10,7 @@ import { Repository } from 'typeorm';
 import { CreateUserDto } from '../users/dto/create-user.dto';
 import { UserEntity } from '../users/entities/user.entity';
 import { UsersService } from '../users/users.service';
+import { logAndThrowInternal } from '../shared/error-handling/error-handling.util';
 import { AuthJwtService } from './auth-jwt.service';
 import { AuthTokensResponseDto } from './dto/auth-tokens-response.dto';
 import { LoginDto } from './dto/login.dto';
@@ -18,6 +19,8 @@ import { JwtPayload } from './types/jwt-payload.type';
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
+
   constructor(
     private readonly usersService: UsersService,
     private readonly authJwtService: AuthJwtService,
@@ -26,7 +29,6 @@ export class AuthService {
   ) {}
 
   async register(dto: RegisterDto): Promise<{
-    user: UserEntity;
     tokens: AuthTokensResponseDto;
   }> {
     const passwordHash = await hash(dto.password, 12);
@@ -40,11 +42,10 @@ export class AuthService {
     const tokens = await this.issueTokens(user);
     await this.saveRefreshTokenHash(user.id, tokens.refreshToken);
 
-    return { user, tokens };
+    return { tokens };
   }
 
   async login(dto: LoginDto): Promise<{
-    user: UserEntity;
     tokens: AuthTokensResponseDto;
   }> {
     let user: UserEntity;
@@ -68,7 +69,7 @@ export class AuthService {
 
     const tokens = await this.issueTokens(user);
     await this.saveRefreshTokenHash(user.id, tokens.refreshToken);
-    return { user, tokens };
+    return { tokens };
   }
 
   async me(payload: JwtPayload | undefined): Promise<UserEntity> {
@@ -97,7 +98,6 @@ export class AuthService {
     refreshToken: string | undefined,
     payload: JwtPayload | undefined,
   ): Promise<{
-    user: UserEntity;
     tokens: AuthTokensResponseDto;
   }> {
     if (!payload || !refreshToken) {
@@ -126,7 +126,7 @@ export class AuthService {
     const tokens = await this.issueTokens(user);
     await this.saveRefreshTokenHash(user.id, tokens.refreshToken);
 
-    return { user, tokens };
+    return { tokens };
   }
 
   async logout(payload: JwtPayload | undefined): Promise<void> {
@@ -168,8 +168,13 @@ export class AuthService {
         { id: userId },
         { refreshToken: refreshTokenHash },
       );
-    } catch {
-      throw new InternalServerErrorException('Failed to store refresh token');
+    } catch (error: unknown) {
+      logAndThrowInternal(
+        this.logger,
+        `Failed to store refresh token hash for user ${userId}`,
+        'Failed to store refresh token',
+        error,
+      );
     }
   }
 
@@ -181,8 +186,13 @@ export class AuthService {
       ]);
 
       return { accessToken, refreshToken };
-    } catch {
-      throw new InternalServerErrorException('Failed to issue auth tokens');
+    } catch (error: unknown) {
+      logAndThrowInternal(
+        this.logger,
+        `Failed to issue auth tokens for user ${user.id}`,
+        'Failed to issue auth tokens',
+        error,
+      );
     }
   }
 }
