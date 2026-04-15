@@ -22,6 +22,9 @@ export class UserEntity {
   @Column({ type: 'varchar' })
   password!: string;
 
+  @Column({ type: 'varchar', nullable: true, select: false })
+  refreshToken!: string | null;
+
   @Column({
     type: 'enum',
     enum: UserRole,

@@ -134,6 +134,7 @@ export class UsersService {
     }
   }
 
+  // можна додаит не зеш пароль
   async updatePassword(
     id: string,
     input: UpdateUserPasswordDto,
