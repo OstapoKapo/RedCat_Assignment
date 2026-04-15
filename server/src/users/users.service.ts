@@ -2,11 +2,12 @@ import {
   BadRequestException,
   ConflictException,
   Injectable,
-  InternalServerErrorException,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { logAndThrowInternal } from '../shared/error-handling/error-handling.util';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserPasswordDto } from './dto/update-user-password.dto';
 import { UpdateUserRoleDto } from './dto/update-user-role.dto';
@@ -27,6 +28,8 @@ type PaginatedUsersResult = {
 
 @Injectable()
 export class UsersService {
+  private readonly logger = new Logger(UsersService.name);
+
   constructor(
     @InjectRepository(UserEntity)
     private readonly usersRepository: Repository<UserEntity>,
@@ -43,15 +46,7 @@ export class UsersService {
     try {
       return await this.usersRepository.save(user);
     } catch (error: unknown) {
-      if (
-        typeof error === 'object' &&
-        error !== null &&
-        'code' in error &&
-        error.code === '23505'
-      ) {
-        throw new ConflictException('A user with this email already exists');
-      }
-      throw new InternalServerErrorException('Failed to create user');
+      this.handleRepositoryError(error, 'Failed to create user');
     }
   }
 
@@ -112,15 +107,7 @@ export class UsersService {
     try {
       await this.usersRepository.save(merged);
     } catch (error: unknown) {
-      if (
-        typeof error === 'object' &&
-        error !== null &&
-        'code' in error &&
-        error.code === '23505'
-      ) {
-        throw new ConflictException('A user with this email already exists');
-      }
-      throw new InternalServerErrorException('Failed to update user');
+      this.handleRepositoryError(error, 'Failed to update user');
     }
   }
 
@@ -173,5 +160,22 @@ export class UsersService {
     if (!result.affected) {
       throw new NotFoundException('User not found');
     }
+  }
+
+  private handleRepositoryError(error: unknown, message: string): never {
+    if (this.isUniqueViolation(error)) {
+      throw new ConflictException('A user with this email already exists');
+    }
+
+    logAndThrowInternal(this.logger, message, message, error);
+  }
+
+  private isUniqueViolation(error: unknown): boolean {
+    return (
+      typeof error === 'object' &&
+      error !== null &&
+      'code' in error &&
+      error.code === '23505'
+    );
   }
 }

@@ -31,7 +31,7 @@ import { UpdateUserRoleDto } from './dto/update-user-role.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UsersPaginationQueryDto } from './dto/users-pagination-query.dto';
 import { UsersService } from './users.service';
-
+// roles guard + self-rules
 @ApiTags('Users')
 @Controller('users')
 export class UsersController {

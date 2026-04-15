@@ -5,10 +5,11 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { ADMIN_ROLE, USER_ROLE } from '../constraints/user.constants';
 
 export enum UserRole {
-  ADMIN = 'ADMIN',
-  CLIENT = 'CLIENT',
+  ADMIN = ADMIN_ROLE,
+  CLIENT = USER_ROLE,
 }
 
 @Entity('users')
