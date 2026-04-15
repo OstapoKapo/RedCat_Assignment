@@ -5,6 +5,7 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
+import { hash } from 'bcryptjs';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { logAndThrowInternal } from '../shared/error-handling/error-handling.util';
@@ -121,14 +122,15 @@ export class UsersService {
     }
   }
 
-  // можна додаит не зеш пароль
   async updatePassword(
     id: string,
     input: UpdateUserPasswordDto,
   ): Promise<void> {
+    const passwordHash = await hash(input.password, 12);
+
     const result = await this.usersRepository.update(
       { id },
-      { password: input.password },
+      { password: passwordHash },
     );
     if (!result.affected) {
       throw new NotFoundException('User not found');

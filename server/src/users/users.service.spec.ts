@@ -4,14 +4,20 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
+import { hash } from 'bcryptjs';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { UserEntity } from './entities/user.entity';
 import { UsersService } from './users.service';
 import { UserRole } from './entities/user.entity';
 
+jest.mock('bcryptjs', () => ({
+  hash: jest.fn(),
+}));
+
 describe('UsersService', () => {
   let service: UsersService;
+  const hashMock = hash as unknown as jest.Mock;
 
   const usersRepositoryMock = {
     create: jest.fn(),
@@ -36,6 +42,7 @@ describe('UsersService', () => {
 
   beforeEach(async () => {
     jest.clearAllMocks();
+    hashMock.mockResolvedValue('hashed-password');
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -241,9 +248,10 @@ describe('UsersService', () => {
 
       await service.updatePassword(userEntity.id, { password: 'newPass123!' });
 
+      expect(hashMock).toHaveBeenCalledWith('newPass123!', 12);
       expect(usersRepositoryMock.update).toHaveBeenCalledWith(
         { id: userEntity.id },
-        { password: 'newPass123!' },
+        { password: 'hashed-password' },
       );
     });
 
