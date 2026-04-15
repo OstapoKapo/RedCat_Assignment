@@ -1,28 +1,31 @@
 import {
   Body,
   Controller,
-  Delete,
   Get,
-  HttpCode,
-  HttpStatus,
   Param,
   ParseUUIDPipe,
   Patch,
   Post,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import {
+  ApiBearerAuth,
   ApiBadRequestResponse,
+  ApiCookieAuth,
   ApiConflictResponse,
   ApiCreatedResponse,
-  ApiNoContentResponse,
   ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
   ApiParam,
   ApiQuery,
   ApiTags,
+  ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
+import { ACCESS_TOKEN_COOKIE_NAME } from '../auth/constants/auth.constants';
+import { JwtAccessAuthGuard } from '../auth/guards/jwt-access-auth.guard';
+import { SelfOrAdminGuard } from '../shared/guards/self-or-admin.guard';
 import { CreateUserDto } from './dto/create-user.dto';
 import { GetUserResponseDto } from './dto/get-user-response.dto';
 import { GetUsersPageResponseDto } from './dto/get-users-page-response.dto';
@@ -31,13 +34,19 @@ import { UpdateUserRoleDto } from './dto/update-user-role.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UsersPaginationQueryDto } from './dto/users-pagination-query.dto';
 import { UsersService } from './users.service';
-
+import { RolesGuard } from '@/shared/guards/roles.guard';
+import { Roles } from '@/shared/decorators/roles.decorator';
+import { UserRole } from './entities/user.entity';
+// roles guard + self-rules
 @ApiTags('Users')
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Post()
+  @Roles(UserRole.ADMIN)
+  @ApiCookieAuth(ACCESS_TOKEN_COOKIE_NAME)
+  @UseGuards(JwtAccessAuthGuard, RolesGuard)
   @ApiOperation({
     summary: 'Create user',
     description: 'Creates a new user record in the database.',
@@ -55,6 +64,9 @@ export class UsersController {
   }
 
   @Get()
+  @Roles(UserRole.ADMIN)
+  @ApiCookieAuth(ACCESS_TOKEN_COOKIE_NAME)
+  @UseGuards(JwtAccessAuthGuard, RolesGuard)
   @ApiOperation({
     summary: 'Get users page',
     description: 'Returns users with pagination.',
@@ -80,6 +92,9 @@ export class UsersController {
   }
 
   @Get('by-email/:email')
+  @Roles(UserRole.ADMIN)
+  @ApiCookieAuth(ACCESS_TOKEN_COOKIE_NAME)
+  @UseGuards(JwtAccessAuthGuard, RolesGuard)
   @ApiOperation({
     summary: 'Get user by email',
     description: 'Returns a single user by email.',
@@ -100,6 +115,9 @@ export class UsersController {
   }
 
   @Get(':id')
+  @ApiCookieAuth(ACCESS_TOKEN_COOKIE_NAME)
+  @ApiBearerAuth()
+  @UseGuards(JwtAccessAuthGuard, SelfOrAdminGuard)
   @ApiOperation({
     summary: 'Get user by id',
     description: 'Returns a single user by id.',
@@ -116,6 +134,9 @@ export class UsersController {
   @ApiNotFoundResponse({
     description: 'User not found',
   })
+  @ApiUnauthorizedResponse({
+    description: 'Missing/invalid access token or insufficient permissions',
+  })
   async getUserById(
     @Param('id', new ParseUUIDPipe()) id: string,
   ): Promise<GetUserResponseDto> {
@@ -124,6 +145,9 @@ export class UsersController {
   }
 
   @Patch(':id')
+  @ApiCookieAuth(ACCESS_TOKEN_COOKIE_NAME)
+  @ApiBearerAuth()
+  @UseGuards(JwtAccessAuthGuard, SelfOrAdminGuard)
   @ApiOperation({
     summary: 'Update user profile',
     description:
@@ -145,6 +169,9 @@ export class UsersController {
   @ApiNotFoundResponse({
     description: 'User not found',
   })
+  @ApiUnauthorizedResponse({
+    description: 'Missing/invalid access token or insufficient permissions',
+  })
   async updateUser(
     @Param('id', new ParseUUIDPipe()) id: string,
     @Body() dto: UpdateUserDto,
@@ -155,6 +182,9 @@ export class UsersController {
   }
 
   @Patch(':id/role')
+  @Roles(UserRole.ADMIN)
+  @ApiCookieAuth(ACCESS_TOKEN_COOKIE_NAME)
+  @UseGuards(JwtAccessAuthGuard, RolesGuard)
   @ApiOperation({
     summary: 'Update user role',
     description: 'Updates user role.',
@@ -171,6 +201,9 @@ export class UsersController {
   @ApiNotFoundResponse({
     description: 'User not found',
   })
+  @ApiUnauthorizedResponse({
+    description: 'Missing/invalid access token or insufficient permissions',
+  })
   async updateUserRole(
     @Param('id', new ParseUUIDPipe()) id: string,
     @Body() dto: UpdateUserRoleDto,
@@ -181,6 +214,9 @@ export class UsersController {
   }
 
   @Patch(':id/password')
+  @ApiCookieAuth(ACCESS_TOKEN_COOKIE_NAME)
+  @ApiBearerAuth()
+  @UseGuards(JwtAccessAuthGuard, SelfOrAdminGuard)
   @ApiOperation({
     summary: 'Update user password',
     description: 'Updates user password.',
@@ -197,6 +233,9 @@ export class UsersController {
   @ApiNotFoundResponse({
     description: 'User not found',
   })
+  @ApiUnauthorizedResponse({
+    description: 'Missing/invalid access token or insufficient permissions',
+  })
   async updatePassword(
     @Param('id', new ParseUUIDPipe()) id: string,
     @Body() dto: UpdateUserPasswordDto,
@@ -207,6 +246,9 @@ export class UsersController {
   }
 
   @Patch(':id/deactivate')
+  @ApiCookieAuth(ACCESS_TOKEN_COOKIE_NAME)
+  @ApiBearerAuth()
+  @UseGuards(JwtAccessAuthGuard, SelfOrAdminGuard)
   @ApiOperation({
     summary: 'Deactivate user',
     description: 'Marks user as inactive.',
@@ -223,6 +265,9 @@ export class UsersController {
   @ApiNotFoundResponse({
     description: 'User not found',
   })
+  @ApiUnauthorizedResponse({
+    description: 'Missing/invalid access token or insufficient permissions',
+  })
   async deactivateUser(
     @Param('id', new ParseUUIDPipe()) id: string,
   ): Promise<GetUserResponseDto> {
@@ -232,6 +277,9 @@ export class UsersController {
   }
 
   @Patch(':id/activate')
+  @ApiCookieAuth(ACCESS_TOKEN_COOKIE_NAME)
+  @Roles(UserRole.ADMIN)
+  @UseGuards(JwtAccessAuthGuard, RolesGuard)
   @ApiOperation({
     summary: 'Activate user',
     description: 'Marks user as active.',
@@ -248,34 +296,14 @@ export class UsersController {
   @ApiNotFoundResponse({
     description: 'User not found',
   })
+  @ApiUnauthorizedResponse({
+    description: 'Missing/invalid access token or insufficient permissions',
+  })
   async activateUser(
     @Param('id', new ParseUUIDPipe()) id: string,
   ): Promise<GetUserResponseDto> {
     await this.usersService.activateUser(id);
     const user = await this.usersService.getUserById(id);
     return GetUserResponseDto.fromEntity(user);
-  }
-
-  @Delete(':id')
-  @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiOperation({
-    summary: 'Delete user',
-    description: 'Deletes user from database.',
-  })
-  @ApiParam({
-    name: 'id',
-    format: 'uuid',
-    example: 'e1c44752-151a-4cc8-a5d7-2bb9a4a65cc4',
-  })
-  @ApiNoContentResponse({
-    description: 'User deleted',
-  })
-  @ApiNotFoundResponse({
-    description: 'User not found',
-  })
-  async deleteUser(
-    @Param('id', new ParseUUIDPipe()) id: string,
-  ): Promise<void> {
-    await this.usersService.deleteUser(id);
   }
 }

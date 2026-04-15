@@ -30,6 +30,16 @@ Additional available settings:
 - `DB_SLOW_QUERY_THRESHOLD_MS`
 - `DB_SSL`, `DB_SSL_REJECT_UNAUTHORIZED`
 
+## CORS
+
+For cookie-based auth, configure allowed frontend origins:
+
+```bash
+CORS_ORIGINS=http://localhost:5173
+```
+
+You can provide multiple origins as a comma-separated list.
+
 ## Default admin seed
 
 On startup, the app can seed a default admin user.
