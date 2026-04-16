@@ -36,6 +36,9 @@ export class UserEntity {
   @Column({ type: 'boolean', default: true })
   isActive!: boolean;
 
+  @Column({ type: 'decimal', precision: 12, scale: 2, default: '0' })
+  balance!: string;
+
   @CreateDateColumn({ type: 'timestamp with time zone' })
   createdAt!: Date;
 
