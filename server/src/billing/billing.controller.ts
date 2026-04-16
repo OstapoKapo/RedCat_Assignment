@@ -34,6 +34,7 @@ import { BillingService } from './billing.service';
 import { DepositDto } from './dto/deposit.dto';
 import { TransactionResponseDto } from './dto/transaction-response.dto';
 import { TransferDto } from './dto/transfer.dto';
+import { TransactionOwnerOrAdminGuard } from './guards/transaction-owner-or-admin.guard';
 
 @ApiTags('Billing')
 @ApiCookieAuth(ACCESS_TOKEN_COOKIE_NAME)
@@ -124,7 +125,7 @@ export class BillingController {
 
   @Post(':id/cancel/:transactionId')
   @ApiCookieAuth(ACCESS_TOKEN_COOKIE_NAME)
-  @UseGuards(JwtAccessAuthGuard, SelfOrAdminGuard)
+  @UseGuards(JwtAccessAuthGuard, SelfOrAdminGuard, TransactionOwnerOrAdminGuard)
   @ApiOperation({
     summary: 'Cancel transaction',
     description:
