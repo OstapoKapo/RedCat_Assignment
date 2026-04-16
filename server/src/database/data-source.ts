@@ -1,5 +1,6 @@
 import 'reflect-metadata';
 import { DataSource } from 'typeorm';
+import { TransactionEntity } from '../billing/entities/transaction.entity';
 import { UserEntity } from '../users/entities/user.entity';
 
 function getNumberEnv(key: string, fallback: number): number {
@@ -50,7 +51,7 @@ export default new DataSource({
         password: process.env.DB_PASSWORD ?? 'postgres',
         database: process.env.DB_NAME ?? 'redcat',
       }),
-  entities: [UserEntity],
+  entities: [UserEntity, TransactionEntity],
   migrations: ['src/database/migrations/*{.ts,.js}'],
   synchronize: false,
   ssl: dbSslEnabled
