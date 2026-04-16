@@ -53,6 +53,7 @@ describe('AuthService', () => {
     refreshToken: null,
     role: UserRole.CLIENT,
     isActive: true,
+    balance: '0',
     createdAt: new Date('2026-01-01T00:00:00.000Z'),
     updatedAt: new Date('2026-01-01T00:00:00.000Z'),
   };
